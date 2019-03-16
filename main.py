@@ -1,17 +1,26 @@
 import discord
 import asyncio
-import database
+import json
 from command import Command
 from bot_func import *
 from tabs import *
 from json_handler import *
-token = "NTU0MzYxMDU2Mjk0ODYyODgw.D2bg_g.yS0qkSdQUPJHAea6ul086yd-GZo"
-prefix = "!"
-class Client(discord.Client):   
+token = "pmira"
+with open("config.json", "r") as out:
+    config = json.loads(out.read())
+    token = config["token"]
+class Client(discord.Client):
     open_tabs = {}
     delt = 60
     minfsb = 2
+    prefix = "!"
     async def on_ready(self):
+        with open("config.json", "r") as out:
+            config = json.loads(out.read())
+            self.delt = config["delt"]
+            self.minfsb = config["minfsb"]
+            self.prefix = config["prefix"]
+
         self.starboard_channel = self.get_channel(id=556228271872671744)
         self.bot_info = await self.application_info()
         print("///=----------------------------------=///")
@@ -72,14 +81,14 @@ class Client(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
-        if message.content.startswith(prefix):
+        if message.content.startswith(self.prefix):
             com, sep, params = message.content.partition(" ")
             com = com[1:]
             params = list(filter(None, params.split(" ")))
             try:
                 v = self.commands[com]
             except KeyError:
-                await message.channel.send("{mention}, try the **!help** command, because this command doesn't exist!".format(mention=message.author.mention), delete_after=self.delt)
+                await message.channel.send("{mention}, try the **{pf}help** command, because this command doesn't exist!".format(mention=message.author.mention, pf=self.prefix), delete_after=self.delt)
             else:
                 if message.author.top_role.permissions >= v.perms:
                     await v.func(self, message, params)
