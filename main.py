@@ -31,7 +31,8 @@ class Client(discord.Client):
             "ban": Command(ban_user, discord.Permissions(permissions=4)),
             "help": Command(help),
             "latency": Command(latency),
-            "about": Command(about)
+            "about": Command(about),
+            "to_gs": Command(to_gs)
     }
     async def on_reaction_add(self, reaction, user):
         if user == self.user:

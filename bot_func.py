@@ -1,5 +1,8 @@
 import discord
 import math
+import aiohttp
+from io import BytesIO
+from PIL import Image
 from tabs import *
 from datetime import datetime
 async def kick_user(self, message, params):
@@ -65,3 +68,14 @@ async def about(self, message, params):
     aboutEmbed.add_field(name="What is my purpose?", value="Oh, I'm a multi-purpose bot! My mission is to entertain, defend and moderate communities!")
     aboutEmbed.add_field(name="Who is my creator?", value="I was written by {author}. He is the smartest, most beautiful, living human in the world. (His ego is reaaaaaally tiny. Right? RIGHT?!!!)".format(author=self.bot_info.owner.mention))
     await message.channel.send(embed=aboutEmbed, delete_after=self.delt)
+async def to_gs(self, message, params):
+    if len(params) >= 1:
+        async with aiohttp.ClientSession() as client_session:
+            async with client_session.get(params[0]) as response:
+                image_bytes = await response.read()
+        with Image.open(BytesIO(image_bytes)) as my_image:
+            output_buffer = BytesIO()
+            my_image = my_image.convert("L")
+            my_image.save(output_buffer, "png")
+            output_buffer.seek(0)
+    await message.channel.send("As you wished I converted the image to grayscale! :upside_down:", file=discord.File(fp=output_buffer, filename="gs.png"))
