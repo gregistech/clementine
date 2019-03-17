@@ -32,7 +32,8 @@ class Client(discord.Client):
             "help": Command(help),
             "latency": Command(latency),
             "about": Command(about),
-            "to_gs": Command(to_gs)
+            "gs_image": Command(gs_image),
+            "blur_image": Command(blur_image)
     }
     async def on_reaction_add(self, reaction, user):
         if user == self.user:

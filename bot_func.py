@@ -2,7 +2,7 @@ import discord
 import math
 import aiohttp
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageFilter
 from tabs import *
 from datetime import datetime
 async def kick_user(self, message, params):
@@ -55,20 +55,24 @@ async def help(self, message, params):
     pages[2].set_author(name=message.author.name, icon_url=message.author.avatar_url)
     pages[2].add_field(name="!kick", value="I can kick some... you know! (!kick @spam @eggs [Some reasoning...])")
     pages[2].add_field(name="!ban", value="This is the most painful thing I can to do someone... (!ban @eggs @spam @KaTsUzU [Some seasoning, I mean reasoning!])")
+    pages[3] = discord.Embed(title="Image manipulation commands")
+    pages[3].set_author(name=message.author.name, icon_url=message.author.avatar_url)
+    pages[3].add_field(name="!gs_image", value="Do you hate colors, but you make an exception for black and white? This is your command! (!gs_image https://example.page/example.png)")
+    pages[3].add_field(name="!blur_image", value="Do you want a cool blur effect, or you want to hide something? Well I'm here for your service! (It's Gaussian blur) (!blur_image https://example.image [radius])")
     currTab = await create_tab(self, message.author, pages, message.channel)
 async def latency(self, message, params):
     if len(params) != 0 and params[0] == "precise":
         latency = self.latency * 1000
     else:
         latency = math.ceil((self.latency * 1000) * 100)/100
-    await message.channel.send("Well, the latency is: {0}ms!".format(latency), delete_after=delt)
+    await message.channel.send("Well, the latency is: {0}ms!".format(latency), delete_after=self.delt)
 async def about(self, message, params):
     aboutEmbed = discord.Embed(title="Hi! I'm going to introduce myself!")
     aboutEmbed.set_author(name=self.user.name, icon_url=self.user.avatar_url)
     aboutEmbed.add_field(name="What is my purpose?", value="Oh, I'm a multi-purpose bot! My mission is to entertain, defend and moderate communities!")
     aboutEmbed.add_field(name="Who is my creator?", value="I was written by {author}. He is the smartest, most beautiful, living human in the world. (His ego is reaaaaaally tiny. Right? RIGHT?!!!)".format(author=self.bot_info.owner.mention))
     await message.channel.send(embed=aboutEmbed, delete_after=self.delt)
-async def to_gs(self, message, params):
+async def gs_image(self, message, params):
     if len(params) >= 1:
         async with aiohttp.ClientSession() as client_session:
             async with client_session.get(params[0]) as response:
@@ -79,3 +83,27 @@ async def to_gs(self, message, params):
             my_image.save(output_buffer, "png")
             output_buffer.seek(0)
     await message.channel.send("As you wished I converted the image to grayscale! :upside_down:", file=discord.File(fp=output_buffer, filename="gs.png"))
+async def blur_image(self, message, params):
+    if len(params) >= 1:
+        r = 2
+        try:
+            if len(params) >= 2:
+                r = float(params[1])
+        except ValueError:
+            await message.channel.send("Well, I'm smart but I can't set the radius to {0}... :crying_cat_face:".format(params[1]))
+            return
+        try:
+            async with aiohttp.ClientSession() as client_session:
+                async with client_session.get(params[0]) as response:
+                    image_bytes = await response.read()
+        except aiohttp.client_exceptions.InvalidURL:
+            await message.channel.send("I can read everyones mind, but uhhh, I can't guess the image on {0} address. :cry:".format(params[0]))
+            return
+        with Image.open(BytesIO(image_bytes)) as my_image:
+            output_buffer = BytesIO()
+            my_image = my_image.filter(ImageFilter.GaussianBlur(r))
+            my_image.save(output_buffer, "png")
+            output_buffer.seek(0)
+    await message.channel.send("As you wished I blured your image! :thinking: (What would you want to hide?)", file=discord.File(fp=output_buffer, filename="gs.png"))
+    return
+
