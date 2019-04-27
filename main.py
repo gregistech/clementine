@@ -23,18 +23,14 @@ class Client(discord.Client):
 
         self.starboard_channel = self.get_channel(id=556228271872671744)
         self.bot_info = await self.application_info()
-        print("///=----------------------------------=///")
-        print("Logged in as {username} with ID {id}".format(username=self.user.name, id=self.user.id))
-        print("///=----------------------------------=///")        
-    commands = {
-            "kick": Command(kick_user, discord.Permissions(permissions=2)),
-            "ban": Command(ban_user, discord.Permissions(permissions=4)),
-            "help": Command(help),
-            "latency": Command(latency),
-            "about": Command(about),
-            "gs_image": Command(gs_image),
-            "blur_image": Command(blur_image)
-    }
+        print("///=----------------------------------=///\nLogged in as {username} with ID {id}\n///=----------------------------------=///".format(username=self.user.name, id=self.user.id))
+    commands = {"kick": Command(kick_user, discord.Permissions(permissions=2)),
+                "ban": Command(ban_user, discord.Permissions(permissions=4)),
+                "help": Command(help),
+                "latency": Command(latency),
+                "about": Command(about),
+                "gs_image": Command(gs_image),
+                "blur_image": Command(blur_image)}
     async def on_reaction_add(self, reaction, user):
         if user == self.user:
             return
@@ -66,8 +62,11 @@ class Client(discord.Client):
                 if reaction.count >= self.minfsb:
                     starMessageEmbed = discord.Embed(title="👍 " + str(reaction.count), description=str(reaction.message.content), timestamp=reaction.message.created_at)
                     starMessageEmbed.set_author(name=reaction.message.author, icon_url=reaction.message.author.avatar_url)
-                    starMessage = await self.starboard_channel.send(embed=starMessageEmbed)
-                    await save_starboard(reaction.message.id, starMessage.id, reaction.count)
+                    for x in reaction.message.guild.channels:
+                        if x.name == "starboard":
+                            self.starboard_channel = x
+                            starMessage = await self.starboard_channel.send(embed=starMessageEmbed)
+                            await save_starboard(reaction.message.id, starMessage.id, reaction.count)
     async def on_reaction_remove(self, reaction, user):
         if reaction.emoji == "👍":
                 starboard = await get_starboard()
@@ -76,7 +75,7 @@ class Client(discord.Client):
                         if v["msgId"] == reaction.message.id:
                             await change_starboard(reaction.message.id, reaction.count)
                             if reaction.count < self.minfsb:
-                                starMessage = await self.starboard_channel.get_message(int(v["starMsgId"]))
+                                starMessage = await self.starboard_channel.fetch_message(int(v["starMsgId"]))
                                 await starMessage.delete()
                                 await remove_starboard(v["msgId"])
                             return
