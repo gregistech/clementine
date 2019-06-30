@@ -34,7 +34,8 @@ class Client(discord.Client):
                 "latency": Command(latency),
                 "about": Command(about),
                 "gs_image": Command(gs_image),
-                "blur_image": Command(blur_image)}
+                "blur_image": Command(blur_image),
+                "configure": Command(change_config, discord.Permissions(permissions=32))}
 
     async def on_reaction_add(self, reaction, user):
         if user == self.user:
@@ -105,7 +106,7 @@ class Client(discord.Client):
             try:
                 v = self.commands[com]
             except KeyError:
-                await message.channel.send("{mention}, try the **{pf}help** command, because this command doesn't exist!".format(mention=message.author.mention, pf=self.get_config_value("prefix", message.guild.id)), delete_after=await self.get_config_value("delt", message.guild.id))
+                await message.channel.send("{mention}, try the **{pf}help** command, because this command doesn't exist!".format(mention=message.author.mention, pf=await self.get_config_value("prefix", message.guild.id)), delete_after=await self.get_config_value("delt", message.guild.id))
             else:
                 if message.author.top_role.permissions >= v.perms:
                     await v.func(self, message, params)

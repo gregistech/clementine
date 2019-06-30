@@ -5,6 +5,7 @@ from io import BytesIO
 from PIL import Image, ImageFilter
 from tabs import *
 from datetime import datetime
+from json_handler import *
 async def kick_user(self, message, params):
     if len(message.mentions) != 0:
         reason = ""
@@ -45,20 +46,20 @@ async def help(self, message, params):
     pages = {}
     pages[0] = discord.Embed(title="Help for the help command")
     pages[0].set_author(name=message.author.name, icon_url=message.author.avatar_url)
-    pages[0].add_field(name="!command:", value="*description* (!command *required arguments* [*optional arguments*])")
+    pages[0].add_field(name="command", value="*description* (command *required arguments* [*optional arguments*])")
     pages[1] = discord.Embed(title="Information commands")
     pages[1].set_author(name=message.author.name, icon_url=message.author.avatar_url)
-    pages[1].add_field(name="!help", value="I help you as I can, にゃあ~~! (!help)")
-    pages[1].add_field(name="!latency", value="I can tell you my LATENCY! (!latency [precise])")
-    pages[1].add_field(name="!about", value="I can tell everything ABOOUUUTT MYYYYYSEEEELLLLFFF *awkward singing noises* (!about)")
+    pages[1].add_field(name="help", value="I help you as I can, にゃあ~~! (help)")
+    pages[1].add_field(name="latency", value="I can tell you my LATENCY! (latency [precise])")
+    pages[1].add_field(name="about", value="I can tell everything ABOOUUUTT MYYYYYSEEEELLLLFFF *awkward singing noises* (about)")
     pages[2] = discord.Embed(title="Moderation commands")
     pages[2].set_author(name=message.author.name, icon_url=message.author.avatar_url)
-    pages[2].add_field(name="!kick", value="I can kick some... you know! (!kick @spam @eggs [Some reasoning...])")
-    pages[2].add_field(name="!ban", value="This is the most painful thing I can to do someone... (!ban @eggs @spam @KaTsUzU [Some seasoning, I mean reasoning!])")
+    pages[2].add_field(name="kick", value="I can kick some... you know! (kick @spam @eggs [Some reasoning...])")
+    pages[2].add_field(name="ban", value="This is the most painful thing I can to do someone... (ban @eggs @spam @KaTsUzU [Some seasoning, I mean reasoning!])")
     pages[3] = discord.Embed(title="Image manipulation commands")
     pages[3].set_author(name=message.author.name, icon_url=message.author.avatar_url)
-    pages[3].add_field(name="!gs_image", value="Do you hate colors, but you make an exception for black and white? This is your command! (!gs_image https://example.page/example.png)")
-    pages[3].add_field(name="!blur_image", value="Do you want a cool blur effect, or you want to hide something? Well I'm here for your service! (It's Gaussian blur) (!blur_image https://example.image [radius])")
+    pages[3].add_field(name="gs_image", value="Do you hate colors, but you make an exception for black and white? This is your command! (gs_image https://example.page/example.png)")
+    pages[3].add_field(name="blur_image", value="Do you want a cool blur effect, or you want to hide something? Well I'm here for your service! (It's Gaussian blur) (blur_image https://example.image [radius])")
     currTab = await create_tab(self, message.author, pages, message.channel)
 async def latency(self, message, params):
     if len(params) != 0 and params[0] == "precise":
@@ -110,4 +111,7 @@ async def blur_image(self, message, params):
             output_buffer.seek(0)
     await message.channel.send("As you wished I blured your image! :thinking: (What would you want to hide?)", file=discord.File(fp=output_buffer, filename="gs.png"))
     return
+async def change_config(self, message, params):
+    if len(params) >= 2:
+        await change_config_value(params[0], params[1], message.guild.id)
 

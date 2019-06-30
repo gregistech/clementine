@@ -36,3 +36,18 @@ async def remove_starboard(msgId):
     with open(starboard_filepath, "w") as out:
         json.dump(currStarboard, out)
     return True
+
+config_filepath = "config.json"
+async def change_config_value(key, new_value, guild_id):
+    with open(config_filepath, "r") as out:
+        config = json.loads(out.read())
+    try:
+        config[str(guild_id)][str(key)] = new_value
+    except KeyError:
+        config[str(guild_id)] = config["default"]
+        config[str(guild_id)][str(key)] = new_value
+
+    with open(config_filepath, "w") as out:
+        config = json.dump(config, out)
+
+
