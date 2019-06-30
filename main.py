@@ -5,15 +5,14 @@ from command import Command
 from bot_func import *
 from tabs import *
 from json_handler import *
-token = "token"
-with open("config.json", "r") as out:
+
+with open(config_filepath, "r") as out:
     config = json.loads(out.read())
-    token = config["token"]
+token = config["token"]
 class Client(discord.Client):
     open_tabs = {}
     async def get_config_value(self, key, guild_id):
-        with open("config.json", "r") as out:
-            config = json.loads(out.read())
+        config = await get_config_contents()
         try:
             value = config[str(guild_id)][str(key)]
             return value
@@ -112,6 +111,14 @@ class Client(discord.Client):
                     await v.func(self, message, params)
                 else:
                     await message.channel.send("{mention}, you don't have enough permission to do this!".format(mention=message.author.mention), delete_after=await self.get_config_value("delt", message.guild.id))
+    async def on_message_delete(self, message):
+        if message.author == self.user:
+            return
+        for x in message.guild.channels:
+            if x.name == "logs":
+                log_message_embed = discord.Embed(title="Deleted message", description=str(message.content), timestamp=message.created_at, colour=discord.Colour.dark_red())
+                log_message_embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+                await x.send(embed=log_message_embed)
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)

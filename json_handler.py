@@ -38,9 +38,13 @@ async def remove_starboard(msgId):
     return True
 
 config_filepath = "config.json"
-async def change_config_value(key, new_value, guild_id):
+async def get_config_contents():
     with open(config_filepath, "r") as out:
         config = json.loads(out.read())
+        return config
+
+async def change_config_value(key, new_value, guild_id):
+    config = await get_config_contents()    
     try:
         config[str(guild_id)][str(key)] = new_value
     except KeyError:
