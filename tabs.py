@@ -12,7 +12,7 @@ class Tab(object):
         self.currentPage = currentPage
 async def create_tab(self, owner, pages, channel, currentPage=0):
     pages[currentPage].set_footer(text="Page {current}/{all}".format(current=currentPage+1, all=len(pages)))
-    currMessage = await channel.send(embed=pages[currentPage], delete_after=self.delt)
+    currMessage = await channel.send(embed=pages[currentPage], delete_after=await self.get_config_value("delt", channel.guild.id))
     await currMessage.add_reaction("\U00002b05")
     await currMessage.add_reaction("\U000027a1")
     self.open_tabs[currMessage.id] = Tab(currMessage, owner, pages, currentPage)

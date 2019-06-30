@@ -11,17 +11,21 @@ with open("config.json", "r") as out:
     token = config["token"]
 class Client(discord.Client):
     open_tabs = {}
-    delt = 60
-    minfsb = 2
-    prefix = "!"
-    async def on_ready(self):
+    async def get_config_value(self, key, guild_id):
         with open("config.json", "r") as out:
             config = json.loads(out.read())
-            self.delt = config["delt"]
-            self.minfsb = config["minfsb"]
-            self.prefix = config["prefix"]
+        try:
+            value = config[str(guild_id)][str(key)]
+            return value
+        except KeyError:
+            try:
+                value = config["default"][str(key)]
+                print("Warning: Needed to get key from the default config options! Guild ID: {0}".format(guild_id))
+                return value
+            except KeyError:
+                raise KeyError("Config key doesn't exist!")
 
-        self.starboard_channel = self.get_channel(id=556228271872671744)
+    async def on_ready(self):
         self.bot_info = await self.application_info()
         print("///=----------------------------------=///\nLogged in as {username} with ID {id}\n///=----------------------------------=///".format(username=self.user.name, id=self.user.id))
     commands = {"kick": Command(kick_user, discord.Permissions(permissions=2)),
@@ -31,6 +35,7 @@ class Client(discord.Client):
                 "about": Command(about),
                 "gs_image": Command(gs_image),
                 "blur_image": Command(blur_image)}
+
     async def on_reaction_add(self, reaction, user):
         if user == self.user:
             return
@@ -59,7 +64,7 @@ class Client(discord.Client):
                         if v["msgId"] == reaction.message.id:
                             await change_starboard(reaction.message.id, reaction.count)
                             return
-                if reaction.count >= self.minfsb:
+                if reaction.count >= await self.get_config_value("minfsb", reaction.message.guild.id):
                     starMessageEmbed = discord.Embed(title="👍 " + str(reaction.count), description=str(reaction.message.content), timestamp=reaction.message.created_at)
                     starMessageEmbed.set_author(name=reaction.message.author, icon_url=reaction.message.author.avatar_url)
                     for x in reaction.message.guild.channels:
@@ -67,6 +72,7 @@ class Client(discord.Client):
                             self.starboard_channel = x
                             starMessage = await self.starboard_channel.send(embed=starMessageEmbed)
                             await save_starboard(reaction.message.id, starMessage.id, reaction.count)
+
     async def on_reaction_remove(self, reaction, user):
         if reaction.emoji == "👍":
                 starboard = await get_starboard()
@@ -74,7 +80,7 @@ class Client(discord.Client):
                     for v in starboard:
                         if v["msgId"] == reaction.message.id:
                             await change_starboard(reaction.message.id, reaction.count)
-                            if reaction.count < self.minfsb:
+                            if reaction.count < await self.get_config_value("minfsb", reaction.message.guild.id):
                                 starMessage = await self.starboard_channel.fetch_message(int(v["starMsgId"]))
                                 await starMessage.delete()
                                 await remove_starboard(v["msgId"])
@@ -88,21 +94,23 @@ class Client(discord.Client):
                                         starMessage = message.edit(starMessageEmbed)
                                         await save_starboard(reaction.message.id, starMessage.id, reaction.count)
                             return
+
     async def on_message(self, message):
         if message.author == self.user:
             return
-        if message.content.startswith(self.prefix):
+        if message.content.startswith(await self.get_config_value("prefix", message.guild.id)):
             com, sep, params = message.content.partition(" ")
             com = com[1:]
             params = list(filter(None, params.split(" ")))
             try:
                 v = self.commands[com]
             except KeyError:
-                await message.channel.send("{mention}, try the **{pf}help** command, because this command doesn't exist!".format(mention=message.author.mention, pf=self.prefix), delete_after=self.delt)
+                await message.channel.send("{mention}, try the **{pf}help** command, because this command doesn't exist!".format(mention=message.author.mention, pf=self.get_config_value("prefix", message.guild.id)), delete_after=await self.get_config_value("delt", message.guild.id))
             else:
                 if message.author.top_role.permissions >= v.perms:
                     await v.func(self, message, params)
                 else:
-                    await message.channel.send("{mention}, you don't have enough permission to do this!".format(mention=message.author.mention), delete_after=self.delt)
+                    await message.channel.send("{mention}, you don't have enough permission to do this!".format(mention=message.author.mention), delete_after=await self.get_config_value("delt", message.guild.id))
+
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)

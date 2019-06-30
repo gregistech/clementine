@@ -15,14 +15,14 @@ async def kick_user(self, message, params):
             try:
                 await user.kick(reason=reason)
             except discord.errors.Forbidden:
-                await message.channel.send("{0} cannot be kicked because I don't have enough permission!".format(user.mention), delete_after=self.delt)
+                await message.channel.send("{0} cannot be kicked because I don't have enough permission!".format(user.mention), delete_after=await self.get_config_value("delt", message.guild.id))
             else:
                 if reason != "":
-                    await message.channel.send("{0} kicked {1} from the server. Reason: {2}".format(message.author.mention, user.mention, reason), delete_after=self.delt)
+                    await message.channel.send("{0} kicked {1} from the server. Reason: {2}".format(message.author.mention, user.mention, reason), delete_after=await self.get_config_value("delt", message.guild.id))
                 else:
-                    await message.channel.send("{0} kicked {1} from the server. Reason: None".format(message.author.mention, user.mention), delete_after=self.delt)
+                    await message.channel.send("{0} kicked {1} from the server. Reason: None".format(message.author.mention, user.mention), delete_after=await self.get_config_value("delt", message.guild.id))
     else:
-        await message.channel.send("{mention}, you need to specify who you want to kick!".format(mention=message.author.mention), delete_after=self.delt)
+        await message.channel.send("{mention}, you need to specify who you want to kick!".format(mention=message.author.mention), delete_after=await self.get_config_value("delt", message.guild.id))
 async def ban_user(self, message, params):
     if len(message.mentions) != 0:
         reason = ""
@@ -33,14 +33,14 @@ async def ban_user(self, message, params):
             try:
                 await user.ban(reason=reason)
             except discord.errors.Forbidden:
-                await message.channel.send("{0} cannot be banned because I don't have enough permission!".format(user.mention), delete_after=self.delt)
+                await message.channel.send("{0} cannot be banned because I don't have enough permission!".format(user.mention), delete_after=await self.get_config_value("delt", message.guild.id))
             else:
                 if reason != "":
-                    await message.channel.send("{0} banned {1} from the server. Reason: {2}".format(message.author.mention, user.mention, reason), delete_after=self.delt)
+                    await message.channel.send("{0} banned {1} from the server. Reason: {2}".format(message.author.mention, user.mention, reason), delete_after=await self.get_config_value("delt", message.guild.id))
                 else:
-                    await message.channel.send("{0} banned {1} from the server. Reason: None".format(message.author.mention, user.mention), delete_after=self.delt)
+                    await message.channel.send("{0} banned {1} from the server. Reason: None".format(message.author.mention, user.mention), delete_after=await self.get_config_value("delt", message.guild.id))
     else:
-        await message.channel.send("{mention}, you need to specify who you want to ban!".format(mention=message.author.mention), delete_after=self.delt)
+        await message.channel.send("{mention}, you need to specify who you want to ban!".format(mention=message.author.mention), delete_after=await self.get_config_value("delt", message.guild.id))
 async def help(self, message, params):
     pages = {}
     pages[0] = discord.Embed(title="Help for the help command")
@@ -65,18 +65,22 @@ async def latency(self, message, params):
         latency = self.latency * 1000
     else:
         latency = math.ceil((self.latency * 1000) * 100)/100
-    await message.channel.send("Well, the latency is: {0}ms!".format(latency), delete_after=self.delt)
+    await message.channel.send("Well, the latency is: {0}ms!".format(latency), delete_after=await self.get_config_value("delt", message.guild.id))
 async def about(self, message, params):
     aboutEmbed = discord.Embed(title="Hi! I'm going to introduce myself!")
     aboutEmbed.set_author(name=self.user.name, icon_url=self.user.avatar_url)
     aboutEmbed.add_field(name="What is my purpose?", value="Oh, I'm a multi-purpose bot! My mission is to entertain, defend and moderate communities!")
     aboutEmbed.add_field(name="Who is my creator?", value="I was written by {author}. He is the smartest, most beautiful, living human in the world. (His ego is reaaaaaally tiny. Right? RIGHT?!!!)".format(author=self.bot_info.owner.mention))
-    await message.channel.send(embed=aboutEmbed, delete_after=self.delt)
+    await message.channel.send(embed=aboutEmbed, delete_after=await self.get_config_value("delt", message.guild.id))
 async def gs_image(self, message, params):
     if len(params) >= 1:
-        async with aiohttp.ClientSession() as client_session:
-            async with client_session.get(params[0]) as response:
-                image_bytes = await response.read()
+        try:
+            async with aiohttp.ClientSession() as client_session:
+                async with client_session.get(params[0]) as response:
+                    image_bytes = await response.read()
+        except aiohttp.client_exceptions.InvalidURL:
+            await message.channel.send("I can read everyone's mind, but uhhh, I can't guess the image on {0} address. :cry:".format(params[0]), delete_after=await self.get_config_value("delt", message.guild.id))
+            return
         with Image.open(BytesIO(image_bytes)) as my_image:
             output_buffer = BytesIO()
             my_image = my_image.convert("L")
@@ -90,14 +94,14 @@ async def blur_image(self, message, params):
             if len(params) >= 2:
                 r = float(params[1])
         except ValueError:
-            await message.channel.send("Well, I'm smart but I can't set the radius to {0}... :crying_cat_face:".format(params[1]))
+            await message.channel.send("Well, I'm smart but I can't set the radius to {0}... :crying_cat_face:".format(params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
             return
         try:
             async with aiohttp.ClientSession() as client_session:
                 async with client_session.get(params[0]) as response:
                     image_bytes = await response.read()
         except aiohttp.client_exceptions.InvalidURL:
-            await message.channel.send("I can read everyones mind, but uhhh, I can't guess the image on {0} address. :cry:".format(params[0]))
+            await message.channel.send("I can read everyone's mind, but uhhh, I can't guess the image on {0} address. :cry:".format(params[0]), delete_after=await self.get_config_value("delt", message.guild.id))
             return
         with Image.open(BytesIO(image_bytes)) as my_image:
             output_buffer = BytesIO()
