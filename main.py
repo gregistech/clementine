@@ -17,12 +17,18 @@ class Client(discord.Client):
             value = config[str(guild_id)][str(key)]
             return value
         except KeyError:
-            try:
-                value = config["default"][str(key)]
-                print("Warning: Needed to get key from the default config options! Guild ID: {0}".format(guild_id))
-                return value
-            except KeyError:
-                raise KeyError("Config key doesn't exist!")
+            if key != "log_channel" and key != "starboard_channel":
+                try:
+                    value = config["default"][str(key)]
+                    print("Warning: Needed to get key from the default config options! Guild ID: {0}".format(guild_id))
+                    return value
+                except KeyError:
+                    raise KeyError("Config key doesn't exist!")
+            else:
+                for x in message.guild.channels:
+                    if x.name == key:
+                        return x.id
+
 
     async def on_ready(self):
         self.bot_info = await self.application_info()
@@ -67,11 +73,9 @@ class Client(discord.Client):
                 if reaction.count >= await self.get_config_value("minfsb", reaction.message.guild.id):
                     starMessageEmbed = discord.Embed(title="👍 " + str(reaction.count), description=str(reaction.message.content), timestamp=reaction.message.created_at)
                     starMessageEmbed.set_author(name=reaction.message.author, icon_url=reaction.message.author.avatar_url)
-                    for x in reaction.message.guild.channels:
-                        if x.name == "starboard":
-                            self.starboard_channel = x
-                            starMessage = await self.starboard_channel.send(embed=starMessageEmbed)
-                            await save_starboard(reaction.message.id, starMessage.id, reaction.count)
+                    self.starboard_channel = self.get_channel(int(await self.get_config_value("starboard_channel", reaction.message.guild.id)))
+                    starMessage = await self.starboard_channel.send(embed=starMessageEmbed)
+                    await save_starboard(reaction.message.id, starMessage.id, reaction.count)
 
     async def on_reaction_remove(self, reaction, user):
         if reaction.emoji == "👍":
@@ -114,11 +118,10 @@ class Client(discord.Client):
     async def on_message_delete(self, message):
         if message.author == self.user:
             return
-        for x in message.guild.channels:
-            if x.name == "logs":
-                log_message_embed = discord.Embed(title="Deleted message", description=str(message.content), timestamp=message.created_at, colour=discord.Colour.dark_red())
-                log_message_embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-                await x.send(embed=log_message_embed)
+        log_channel = self.get_channel(int(await self.get_config_value("log_channel", message.guild.id)))
+        log_message_embed = discord.Embed(title="Deleted message", description=str(message.content), timestamp=message.created_at, colour=discord.Colour.dark_red())
+        log_message_embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+        await log_channel.send(embed=log_message_embed)
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)
