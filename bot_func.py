@@ -75,6 +75,8 @@ async def about(self, message, params):
     aboutEmbed.set_author(name=self.user.name, icon_url=self.user.avatar_url)
     aboutEmbed.add_field(name="What is my purpose?", value="Oh, I'm a multi-purpose bot! My mission is to entertain, defend and moderate communities!")
     aboutEmbed.add_field(name="Who is my creator?", value="I was written by {author}. He is the smartest, most beautiful, living human in the world. (His ego is reaaaaaally tiny. Right? RIGHT?!!!)".format(author=self.bot_info.owner.mention))
+    aboutEmbed.add_field(name="My source code? I'm~~ a little shyy...", value="https://github.com/thegergo02/clementine")
+    aboutEmbed.add_field(name="My current latency?", value="I'm fast af!! {0} ms, not that slow, right?!".format(self.latency * 1000))
     await message.channel.send(embed=aboutEmbed, delete_after=await self.get_config_value("delt", message.guild.id))
 async def gs_image(self, message, params):
     if len(params) >= 1:
