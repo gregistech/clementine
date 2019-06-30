@@ -118,5 +118,10 @@ async def blur_image(self, message, params):
     return
 async def change_config(self, message, params):
     if len(params) >= 2:
-        await change_config_value(params[0], params[1], message.guild.id)
+        if params[0] != "log_channel" and params[0] != "starboard_channel":
+            await change_config_value(params[0], params[1], message.guild.id) 
+        else:
+            await change_config_value(params[0], message.channel_mentions[0].id, message.guild.id)
+        await message.channel.send("{0} changed to {1}!".format(params[0], params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
+
 
