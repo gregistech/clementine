@@ -60,6 +60,9 @@ async def help(self, message, params):
     pages[3].set_author(name=message.author.name, icon_url=message.author.avatar_url)
     pages[3].add_field(name="gs_image", value="Do you hate colors, but you make an exception for black and white? This is your command! (gs_image https://example.page/example.png)")
     pages[3].add_field(name="blur_image", value="Do you want a cool blur effect, or you want to hide something? Well I'm here for your service! (It's Gaussian blur) (blur_image https://example.image [radius])")
+    pages[4] = discord.Embed(title="Image manipulation commands")
+    pages[4].set_author(name=message.author.name, icon_url=message.author.avatar_url)
+    pages[4].add_field(name="configure", value="Do you want to change some preferences? I can certainly help with that! (configure prefix .)")
     currTab = await create_tab(self, message.author, pages, message.channel)
 async def latency(self, message, params):
     if len(params) != 0 and params[0] == "precise":
