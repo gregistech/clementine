@@ -5,7 +5,7 @@ from command import Command
 from bot_func import *
 from tabs import *
 from json_handler import *
-token = "pmira"
+token = "token"
 with open("config.json", "r") as out:
     config = json.loads(out.read())
     token = config["token"]
@@ -78,6 +78,15 @@ class Client(discord.Client):
                                 starMessage = await self.starboard_channel.fetch_message(int(v["starMsgId"]))
                                 await starMessage.delete()
                                 await remove_starboard(v["msgId"])
+                            else:
+                                starMessageEmbed = discord.Embed(title="👍 " + str(reaction.count), description=str(reaction.message.content), timestamp=reaction.message.created_at)
+                                starMessageEmbed.set_author(name=reaction.message.author, icon_url=reaction.message.author.avatar_url)
+                                for x in reaction.message.guild.channels:
+                                    if x.name == "starboard":
+                                        self.starboard_channel = x
+                                        message = await self.starboard_channel.fetch_message(v["starMsgId"])
+                                        starMessage = message.edit(starMessageEmbed)
+                                        await save_starboard(reaction.message.id, starMessage.id, reaction.count)
                             return
     async def on_message(self, message):
         if message.author == self.user:
