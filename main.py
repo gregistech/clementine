@@ -5,12 +5,39 @@ from command import Command
 from bot_func import *
 from tabs import *
 from json_handler import *
+from datetime import date
 
 with open(config_filepath, "r") as out:
     config = json.loads(out.read())
 token = config["token"]
+
+async def log_action(self, message, action_type, reaction = 0):
+    log_channel = self.get_channel(int(await self.get_config_value("log_channel", message.guild.id)))
+    embed_title = "Unknown action"
+    embed_description = "operation: fuck humanity"
+    embed_colour = discord.Colour.green()
+    embed_timestamp = date(2100, 11, 26)
+    embed_author = self.user
+    if action_type == "deleted_message":
+        embed_title = "Deleted message"
+        embed_description = str(message.content)
+        embed_colour = discord.Colour.dark_red()
+        embed_timestamp = message.created_at
+        embed_author = message.author
+    elif action_type == "deleted_reaction":
+        embed_title = "Deleted reaction"
+        embed_description = "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji)
+        embed_colour = discord.Colour.dark_red()
+        embed_timestamp = message.created_at
+        embed_author = message.author
+
+    log_message_embed = discord.Embed(title=embed_title, description=embed_description, timestamp=embed_timestamp, colour=embed_colour)
+    log_message_embed.set_author(name=embed_author, icon_url=embed_author.avatar_url)
+    await log_channel.send(embed=log_message_embed)
+ 
 class Client(discord.Client):
-    open_tabs = {}
+    open_tabs = {}      
+    
     async def get_config_value(self, key, guild_id):
         config = await get_config_contents()
         try:
@@ -28,7 +55,6 @@ class Client(discord.Client):
                 for x in message.guild.channels:
                     if x.name == key:
                         return x.id
-
 
     async def on_ready(self):
         self.bot_info = await self.application_info()
@@ -78,6 +104,7 @@ class Client(discord.Client):
                     await save_starboard(reaction.message.id, starMessage.id, reaction.count)
 
     async def on_reaction_remove(self, reaction, user):
+        await log_action(self, reaction.message, "deleted_reaction", reaction)
         if reaction.emoji == "👍":
                 starboard = await get_starboard()
                 if starboard != []:
@@ -118,10 +145,7 @@ class Client(discord.Client):
     async def on_message_delete(self, message):
         if message.author == self.user:
             return
-        log_channel = self.get_channel(int(await self.get_config_value("log_channel", message.guild.id)))
-        log_message_embed = discord.Embed(title="Deleted message", description=str(message.content), timestamp=message.created_at, colour=discord.Colour.dark_red())
-        log_message_embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-        await log_channel.send(embed=log_message_embed)
+        await log_action(self, message, "deleted_message")
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)
