@@ -5,7 +5,7 @@ from command import Command
 from bot_func import *
 from tabs import *
 from json_handler import *
-from datetime import date
+from datetime import date, datetime
 
 with open(config_filepath, "r") as out:
     config = json.loads(out.read())
@@ -22,13 +22,13 @@ async def log_action(self, message, action_type, reaction = 0):
         embed_title = "Deleted message"
         embed_description = str(message.content)
         embed_colour = discord.Colour.dark_red()
-        embed_timestamp = message.created_at
+        embed_timestamp = datetime.now()
         embed_author = message.author
     elif action_type == "deleted_reaction":
         embed_title = "Deleted reaction"
         embed_description = "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji)
         embed_colour = discord.Colour.dark_red()
-        embed_timestamp = message.created_at
+        embed_timestamp = datetime.now()
         embed_author = message.author
 
     log_message_embed = discord.Embed(title=embed_title, description=embed_description, timestamp=embed_timestamp, colour=embed_colour)
