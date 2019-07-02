@@ -6,6 +6,7 @@ from PIL import Image, ImageFilter
 from tabs import *
 from datetime import datetime
 from json_handler import *
+from music_downloader import *
 async def kick_user(self, message, params):
     if len(message.mentions) != 0:
         reason = ""
@@ -124,4 +125,28 @@ async def change_config(self, message, params):
             await change_config_value(params[0], message.channel_mentions[0].id, message.guild.id)
         await message.channel.send("**{0}** changed to **{1}**!".format(params[0], params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
 
+async def play_music(self, message, params):
+    await message.channel.trigger_typing()
+    voice_channel = message.author.voice.channel
+    connected = False
+    for x in self.voice_clients:
+        if x.guild == message.guild:
+            connected = True
+            voice_client = x
+        else:
+            connected = False
+    if not connected:
+        voice_client = await voice_channel.connect()
+    
+    await download_audio(params[0])
 
+    music_info = await extract_info_yt(params[0])
+
+    audio_source = discord.FFmpegPCMAudio("./music/{id}.mp3".format(id=music_info["id"]))
+    voice_client.play(audio_source, after=None)
+    
+    info_embed = discord.Embed(title=music_info["title"], description=music_info["uploader"])
+    with open("./music/{image}".format(image=music_info["id"] + ".jpg"), "rb") as f:
+        upload_file = discord.File(fp=f)
+    info_embed.set_image(url="attachment://" + music_info["id"] + ".jpg")
+    await message.channel.send(file=upload_file, embed=info_embed)
