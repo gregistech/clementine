@@ -7,6 +7,9 @@ from tabs import *
 from datetime import datetime
 from json_handler import *
 from music_downloader import *
+
+guild_vcs = {}
+
 async def kick_user(self, message, params):
     if len(message.mentions) != 0:
         reason = ""
@@ -126,6 +129,8 @@ async def change_config(self, message, params):
         await message.channel.send("**{0}** changed to **{1}**!".format(params[0], params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
 
 async def play_music(self, message, params):
+    if len(params) != 1:
+        return
     await message.channel.trigger_typing()
     voice_channel = message.author.voice.channel
     connected = False
@@ -137,7 +142,8 @@ async def play_music(self, message, params):
             connected = False
     if not connected:
         voice_client = await voice_channel.connect()
-    
+        guild_vcs[message.guild.id] = voice_client
+
     await download_audio(params[0])
 
     music_info = await extract_info_yt(params[0])
@@ -150,3 +156,10 @@ async def play_music(self, message, params):
         upload_file = discord.File(fp=f)
     info_embed.set_image(url="attachment://" + music_info["id"] + ".jpg")
     await message.channel.send(file=upload_file, embed=info_embed)
+async def stop_music(self, message, params):
+    try:
+        await guild_vcs[message.guild.id].disconnect()
+        await message.channel.send("I-it wasn't my fault, righh-t? :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
+    except KeyError:
+        await message.channel.send("I can't stop if you don't tuuurn me on, if you know what I mean. :wink:", delete_after=await self.get_config_value("delt", message.guild.id))
+
