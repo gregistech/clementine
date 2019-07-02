@@ -16,7 +16,7 @@ async def log_action(self, message, action_type, reaction = 0):
     embed_title = "Unknown action"
     embed_description = "operation: fuck humanity"
     embed_colour = discord.Colour.green()
-    embed_timestamp = date(2100, 11, 26)
+    embed_timestamp = datetime(2100, 11, 26)
     embed_author = self.user
     if action_type == "deleted_message":
         embed_title = "Deleted message"
@@ -27,6 +27,12 @@ async def log_action(self, message, action_type, reaction = 0):
     elif action_type == "deleted_reaction":
         embed_title = "Deleted reaction"
         embed_description = "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji)
+        embed_colour = discord.Colour.dark_red()
+        embed_timestamp = datetime.now()
+        embed_author = message.author
+    elif action_type == "edited_message":
+        embed_title = "Edited message"
+        embed_description = "{before} -> {after}".format(before=reaction.content, after=message.content) ## reaction = before message, bad design I know
         embed_colour = discord.Colour.dark_red()
         embed_timestamp = datetime.now()
         embed_author = message.author
@@ -146,6 +152,10 @@ class Client(discord.Client):
         if message.author == self.user:
             return
         await log_action(self, message, "deleted_message")
+    async def on_message_edit(self, before, after):
+        if after.author == self.user:
+            return
+        await log_action(self, after, "edited_message", before)
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)
