@@ -1,5 +1,5 @@
 import discord
-class Command(object):
+class command(object):
     func = ""
     perms = ""
     def __init__(self, func, perms=discord.Permissions(permissions=0)):

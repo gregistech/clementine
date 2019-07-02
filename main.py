@@ -1,10 +1,11 @@
 import discord
 import asyncio
 import json
-from command import Command
+from command import command
 from bot_func import *
 from tabs import *
 from json_handler import *
+from log_embed import log_embed
 from datetime import date, datetime
 
 with open(config_filepath, "r") as out:
@@ -13,32 +14,17 @@ token = config["token"]
 
 async def log_action(self, message, action_type, reaction = 0):
     log_channel = self.get_channel(int(await self.get_config_value("log_channel", message.guild.id)))
-    embed_title = "Unknown action"
-    embed_description = "operation: fuck humanity"
-    embed_colour = discord.Colour.green()
-    embed_timestamp = datetime(2100, 11, 26)
-    embed_author = self.user
-    if action_type == "deleted_message":
-        embed_title = "Deleted message"
-        embed_description = str(message.content)
-        embed_colour = discord.Colour.dark_red()
-        embed_timestamp = datetime.now()
-        embed_author = message.author
-    elif action_type == "deleted_reaction":
-        embed_title = "Deleted reaction"
-        embed_description = "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji)
-        embed_colour = discord.Colour.dark_red()
-        embed_timestamp = datetime.now()
-        embed_author = message.author
-    elif action_type == "edited_message":
-        embed_title = "Edited message"
-        embed_description = "{before} -> {after}".format(before=reaction.content, after=message.content) ## reaction = before message, bad design I know
-        embed_colour = discord.Colour.dark_red()
-        embed_timestamp = datetime.now()
-        embed_author = message.author
+    new_embed = log_embed.default(self)
 
-    log_message_embed = discord.Embed(title=embed_title, description=embed_description, timestamp=embed_timestamp, colour=embed_colour)
-    log_message_embed.set_author(name=embed_author, icon_url=embed_author.avatar_url)
+    if action_type == "deleted_message":
+        new_embed = log_embed("Deleted message", message.content, discord.Colour.dark_red(), datetime.now(), message.author)
+    elif action_type == "deleted_reaction":
+        new_embed = log_embed("Deleted reaction", "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji), discord.Colour.dark_red(), datetime.now(), message.author)
+    elif action_type == "edited_message":
+        new_embed = log_embed("Edited message", "{before} -> {after}".format(before=reaction.content, after=message.content), discord.Colour.dark_red(), datetime.now(), message.author)
+    
+    log_message_embed = discord.Embed(title=new_embed.title, description=new_embed.desc, timestamp=new_embed.timestamp, colour=new_embed.colour)
+    log_message_embed.set_author(name=new_embed.author, icon_url=new_embed.author.avatar_url)
     await log_channel.send(embed=log_message_embed)
  
 class Client(discord.Client):
@@ -65,14 +51,14 @@ class Client(discord.Client):
     async def on_ready(self):
         self.bot_info = await self.application_info()
         print("///=----------------------------------=///\nLogged in as {username} with ID {id}\n///=----------------------------------=///".format(username=self.user.name, id=self.user.id))
-    commands = {"kick": Command(kick_user, discord.Permissions(permissions=2)),
-                "ban": Command(ban_user, discord.Permissions(permissions=4)),
-                "help": Command(help),
-                "latency": Command(latency),
-                "about": Command(about),
-                "gs_image": Command(gs_image),
-                "blur_image": Command(blur_image),
-                "configure": Command(change_config, discord.Permissions(permissions=32))}
+    commands = {"kick": command(kick_user, discord.Permissions(permissions=2)),
+                "ban": command(ban_user, discord.Permissions(permissions=4)),
+                "help": command(help),
+                "latency": command(latency),
+                "about": command(about),
+                "gs_image": command(gs_image),
+                "blur_image": command(blur_image),
+                "configure": command(change_config, discord.Permissions(permissions=32))}
 
     async def on_reaction_add(self, reaction, user):
         if user == self.user:
