@@ -13,7 +13,7 @@ async def extract_info_yt(url):
     with youtube_dl.YoutubeDL(options)  as ydl:
         info = ydl.extract_info(url, download=False)
     return info
-async def download_audio(url):
+async def download_audio_yt(url):
     options = {
         'format': 'bestaudio/best',
         'extractaudio' : True,

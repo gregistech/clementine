@@ -7,6 +7,7 @@ from tabs import *
 from datetime import datetime
 from json_handler import *
 from music_downloader import *
+from music_logic import *
 
 guild_vcs = {}
 
@@ -127,39 +128,39 @@ async def change_config(self, message, params):
         else:
             await change_config_value(params[0], message.channel_mentions[0].id, message.guild.id)
         await message.channel.send("**{0}** changed to **{1}**!".format(params[0], params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
-
-async def play_music(self, message, params):
+async def play(self, message, params):
     if len(params) != 1:
         return
     await message.channel.trigger_typing()
     voice_channel = message.author.voice.channel
-    connected = False
-    for x in self.voice_clients:
-        if x.guild == message.guild:
-            connected = True
-            voice_client = x
-        else:
-            connected = False
+
+    connected = await is_connected_vc(self.voice_clients, message.guild)
     if not connected:
         voice_client = await voice_channel.connect()
         guild_vcs[message.guild.id] = voice_client
-
-    await download_audio(params[0])
+    else:
+        voice_client = connected
 
     music_info = await extract_info_yt(params[0])
-
-    audio_source = discord.FFmpegPCMAudio("./music/{id}.mp3".format(id=music_info["id"]))
-    voice_client.play(audio_source, after=None)
     
-    info_embed = discord.Embed(title=music_info["title"], description=music_info["uploader"])
-    with open("./music/{image}".format(image=music_info["id"] + ".jpg"), "rb") as f:
-        upload_file = discord.File(fp=f)
-    info_embed.set_image(url="attachment://" + music_info["id"] + ".jpg")
-    await message.channel.send(file=upload_file, embed=info_embed)
+    await download_audio_yt(params[0])
+    if not voice_client.is_playing():
+        await connect_play(music_info["id"], voice_client)
+        
+        info_embed = await create_np_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
+        upload_file = await get_local_thumbnail(music_info["id"])
+        await message.channel.send(file=upload_file, embed=info_embed)
+    else:
+        await add_queue(music_info["id"])
+
+        info_embed = await create_q_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
+        upload_file = await get_local_thumbnail(music_info["id"])
+        await message.channel.send(file=upload_file, embed=info_embed)
 async def stop_music(self, message, params):
     try:
         await guild_vcs[message.guild.id].disconnect()
         await message.channel.send("I-it wasn't my fault, righh-t? :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
+        guild_vcs.pop(message.guild.id)
     except KeyError:
         await message.channel.send("I can't stop if you don't tuuurn me on, if you know what I mean. :wink:", delete_after=await self.get_config_value("delt", message.guild.id))
 

@@ -59,7 +59,7 @@ class Client(discord.Client):
                 "gs_image": command(gs_image),
                 "blur_image": command(blur_image),
                 "configure": command(change_config, discord.Permissions(permissions=32)),
-                "play": command(play_music),
+                "play": command(play),
                 "stop": command(stop_music)}
 
     async def on_reaction_add(self, reaction, user):
