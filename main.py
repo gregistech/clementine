@@ -144,7 +144,8 @@ class Client(discord.Client):
     async def on_message_edit(self, before, after):
         if after.author == self.user:
             return
-        await log_action(self, after, "edited_message", before)
+        if before.content != after.content:
+            await log_action(self, after, "edited_message", before)
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)

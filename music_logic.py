@@ -25,8 +25,8 @@ async def on_music_ended(voice_client, self):
     music_id = queued_songs[0]
     url = "https://www.youtube.com/watch?v={id}".format(id=music_id)
     music_info = await extract_info_yt(url)
-    await connect_play(music_id, voice_client, self)
     await remove_queue()
+    await connect_play(music_id, voice_client, self)
 async def create_np_music_embed(title, uploader, music_id):
     info_embed = discord.Embed(title=title, description=uploader)
     info_embed.set_image(url="attachment://" + music_id + ".jpg")
@@ -40,6 +40,6 @@ async def create_q_music_embed(title, uploader, music_id):
 async def add_queue(music_id):
     queued_songs.append(music_id)
     return
-async def remove_queue(music_id):
+async def remove_queue():
     del queued_songs[0]
     return
