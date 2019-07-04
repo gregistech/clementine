@@ -22,7 +22,11 @@ async def log_action(self, message, action_type, reaction = 0):
         new_embed = log_embed("Deleted reaction", "{content} | {emoji}".format(content=message.content, emoji=reaction.emoji), discord.Colour.dark_red(), datetime.now(), message.author)
     elif action_type == "edited_message":
         new_embed = log_embed("Edited message", "{before} -> {after}".format(before=reaction.content, after=message.content), discord.Colour.dark_red(), datetime.now(), message.author)
-    
+    elif action_type == "created_channel":
+        new_embed = log_embed("Created channel", message.name, discord.Colour.green(), datetime.now(), self.user)
+    elif action_type == "deleted_channel":
+        new_embed = log_embed("Deleted channel", message.name, discord.Colour.dark_red(), datetime.now(), self.user)
+
     log_message_embed = discord.Embed(title=new_embed.title, description=new_embed.desc, timestamp=new_embed.timestamp, colour=new_embed.colour)
     log_message_embed.set_author(name=new_embed.author, icon_url=new_embed.author.avatar_url)
     await log_channel.send(embed=log_message_embed)
@@ -146,6 +150,11 @@ class Client(discord.Client):
             return
         if before.content != after.content:
             await log_action(self, after, "edited_message", before)
+    
+    async def on_guild_channel_create(self, channel):
+        await log_action(self, channel, "created_channel")
+    async def on_guild_channel_delete(self, channel):
+        await log_action(self, channel, "deleted_channel")
 
 client = Client(activity=discord.Activity(name="your behaviour!", type=3))
 client.run(token)

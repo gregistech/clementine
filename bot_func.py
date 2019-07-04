@@ -129,10 +129,19 @@ async def change_config(self, message, params):
             await change_config_value(params[0], message.channel_mentions[0].id, message.guild.id)
         await message.channel.send("**{0}** changed to **{1}**!".format(params[0], params[1]), delete_after=await self.get_config_value("delt", message.guild.id))
 async def play(self, message, params):
-    if len(params) != 1:
+    if len(params) < 1:
         return
+    search_term = ""
+    for i in params:
+        search_term += " " + i
+    #search_term = search_term.replace("https://", "").replace("http://", "")
+    search_term = search_term[1::]
+
     await message.channel.trigger_typing()
-    voice_channel = message.author.voice.channel
+    try:
+        voice_channel = message.author.voice.channel
+    except AttributeError:
+        await message.channel.send("I would like to party with you, but first find a voice channel... :facepalm:", delete_after=await self.get_config_value("delt", message.guild.id))
 
     connected = await is_connected_vc(self.voice_clients, message.guild)
     if not connected:
@@ -141,8 +150,14 @@ async def play(self, message, params):
     else:
         voice_client = connected
 
-    music_info = await extract_info_yt(params[0])
-    await download_audio_yt(params[0])
+    music_info = await extract_info_yt(search_term)
+    try:
+        if music_info["_type"] == "playlist":
+            music_info = music_info["entries"][0]
+    except KeyError:
+        pass
+
+    await download_audio_yt(music_info["id"])
     if not voice_client.is_playing():
         await connect_play(music_info["id"], voice_client, self)
         
@@ -159,13 +174,13 @@ async def skip(self, message, params):
     try:
         skip_status = await on_music_ended(guild_vcs[message.guild.id], self)
     except KeyError:
-        await message.channel.send("You didn't even invite me? HOW DARE YOU?! :cry:")
+        await message.channel.send("You didn't even invite me, and you want me to skip? HOW DARE YOU?! :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
         return
 
     if skip_status == "skipped":
-        await message.channel.send("Current song skipped! :wink:") 
+        await message.channel.send("Current song skipped! :wink:", delete_after=await self.get_config_value("delt", message.guild.id))
     elif skip_status == "no_queue":
-        await message.channel.send("I can't skip nothing. That's the exact reason why you can't skip your life!")
+        await message.channel.send("I can't skip nothing. That's the exact reason why you can't skip your life!", delete_after=await self.get_config_value("delt", message.guild.id))
 async def stop(self, message, params):
     try:
         await guild_vcs[message.guild.id].disconnect()
