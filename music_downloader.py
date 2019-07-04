@@ -8,7 +8,7 @@ async def extract_info_yt(url):
         'extractaudio' : True,
         'audioformat' : "mp3",
         'outtmpl': "./music/nope.asd",
-        'noplaylist' : True,
+        'noplaylist' : True
     }
     with youtube_dl.YoutubeDL(options)  as ydl:
         info = ydl.extract_info(url, download=False)

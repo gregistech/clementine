@@ -21,12 +21,14 @@ async def get_local_thumbnail(thmb_id):
         return discord.File(fp=f)
 async def on_music_ended(voice_client, self):
     if len(queued_songs) == 0:
-        return
+        return "no_queue"
+    voice_client.stop()
     music_id = queued_songs[0]
     url = "https://www.youtube.com/watch?v={id}".format(id=music_id)
     music_info = await extract_info_yt(url)
     await remove_queue()
     await connect_play(music_id, voice_client, self)
+    return "skipped"
 async def create_np_music_embed(title, uploader, music_id):
     info_embed = discord.Embed(title=title, description=uploader)
     info_embed.set_image(url="attachment://" + music_id + ".jpg")

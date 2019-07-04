@@ -156,12 +156,21 @@ async def play(self, message, params):
         upload_file = await get_local_thumbnail(music_info["id"])
         await message.channel.send(file=upload_file, embed=info_embed)
 async def skip(self, message, params):
-    await on_music_ended(message.author.voice.channel, self)
+    try:
+        skip_status = await on_music_ended(guild_vcs[message.guild.id], self)
+    except KeyError:
+        await message.channel.send("You didn't even invite me? HOW DARE YOU?! :cry:")
+        return
+
+    if skip_status == "skipped":
+        await message.channel.send("Current song skipped! :wink:") 
+    elif skip_status == "no_queue":
+        await message.channel.send("I can't skip nothing. That's the exact reason why you can't skip your life!")
 async def stop(self, message, params):
     try:
         await guild_vcs[message.guild.id].disconnect()
         await message.channel.send("I-it wasn't my fault, righh-t? :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
         guild_vcs.pop(message.guild.id)
     except KeyError:
-        await message.channel.send("I can't stop if you don't tuuurn me on, if you know what I mean. :wink:", delete_after=await self.get_config_value("delt", message.guild.id))
+        await message.channel.send("I can't stop if you don't tuuurn me on, if you know what I mean. :smirk:", delete_after=await self.get_config_value("delt", message.guild.id))
 
