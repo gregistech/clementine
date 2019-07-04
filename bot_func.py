@@ -142,10 +142,9 @@ async def play(self, message, params):
         voice_client = connected
 
     music_info = await extract_info_yt(params[0])
-    
     await download_audio_yt(params[0])
     if not voice_client.is_playing():
-        await connect_play(music_info["id"], voice_client)
+        await connect_play(music_info["id"], voice_client, self)
         
         info_embed = await create_np_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
         upload_file = await get_local_thumbnail(music_info["id"])
@@ -156,7 +155,9 @@ async def play(self, message, params):
         info_embed = await create_q_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
         upload_file = await get_local_thumbnail(music_info["id"])
         await message.channel.send(file=upload_file, embed=info_embed)
-async def stop_music(self, message, params):
+async def skip(self, message, params):
+    await on_music_ended(message.author.voice.channel, self)
+async def stop(self, message, params):
     try:
         await guild_vcs[message.guild.id].disconnect()
         await message.channel.send("I-it wasn't my fault, righh-t? :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
