@@ -95,7 +95,7 @@ class Client(discord.Client):
                         if v["msgId"] == reaction.message.id:
                             await change_starboard(reaction.message.id, reaction.count)
                             return
-                if reaction.count >= await self.get_config_value("minfsb", reaction.message.guild.id):
+                if reaction.count >= int(await self.get_config_value("minfsb", reaction.message.guild.id)):
                     starMessageEmbed = discord.Embed(title="👍 " + str(reaction.count), description=str(reaction.message.content), timestamp=reaction.message.created_at)
                     starMessageEmbed.set_author(name=reaction.message.author, icon_url=reaction.message.author.avatar_url)
                     self.starboard_channel = self.get_channel(int(await self.get_config_value("starboard_channel", reaction.message.guild.id)))
@@ -110,7 +110,7 @@ class Client(discord.Client):
                     for v in starboard:
                         if v["msgId"] == reaction.message.id:
                             await change_starboard(reaction.message.id, reaction.count)
-                            if reaction.count < await self.get_config_value("minfsb", reaction.message.guild.id):
+                            if reaction.count < int(await self.get_config_value("minfsb", reaction.message.guild.id)):
                                 starMessage = await self.starboard_channel.fetch_message(int(v["starMsgId"]))
                                 await starMessage.delete()
                                 await remove_starboard(v["msgId"])
