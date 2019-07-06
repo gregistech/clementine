@@ -6,9 +6,9 @@ from PIL import Image, ImageFilter
 from tabs import *
 from datetime import datetime
 from json_handler import *
-from music_downloader import *
-from music_logic import *
-
+from music_downloader import music_downloader
+from music_logic import music_logic
+from music_object import music_object
 guild_vcs = {}
 
 async def kick_user(self, message, params):
@@ -131,48 +131,44 @@ async def change_config(self, message, params):
 async def play(self, message, params):
     if len(params) < 1:
         return
-    search_term = ""
-    for i in params:
-        search_term += " " + i
-    #search_term = search_term.replace("https://", "").replace("http://", "")
-    search_term = search_term[1::]
+    search_term = await music_logic.params_to_searchterm(params)
 
     await message.channel.trigger_typing()
     try:
         voice_channel = message.author.voice.channel
     except AttributeError:
         await message.channel.send("I would like to party with you, but first find a voice channel... :facepalm:", delete_after=await self.get_config_value("delt", message.guild.id))
+        return
 
-    connected = await is_connected_vc(self.voice_clients, message.guild)
+    connected = await music_logic.is_connected_vc(self.voice_clients, message.guild)
     if not connected:
         voice_client = await voice_channel.connect()
         guild_vcs[message.guild.id] = voice_client
     else:
         voice_client = connected
 
-    music_info = await extract_info_yt(search_term)
+    music_info = await music_downloader.extract_info_music(search_term)
     try:
         if music_info["_type"] == "playlist":
             music_info = music_info["entries"][0]
     except KeyError:
         pass
+    music_info = music_object(music_info["id"], music_info["title"], music_info["uploader"], music_info["webpage_url"])
+    
+    await music_downloader.download_audio_music(music_info.url)
 
-    await download_audio_yt(music_info["id"])
+    upload_file = await music_logic.get_local_thumbnail(music_info.id)
     if not voice_client.is_playing():
-        await connect_play(music_info["id"], voice_client, self)
-        
-        info_embed = await create_np_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
-        upload_file = await get_local_thumbnail(music_info["id"])
+        music_logic.connect_play(music_info, voice_client, self)    
+        info_embed = await music_logic.create_np_music_embed(music_info)
         await message.channel.send(file=upload_file, embed=info_embed)
     else:
-        await add_queue(music_info["id"])
-
-        info_embed = await create_q_music_embed(music_info["title"], music_info["uploader"], music_info["id"])
-        upload_file = await get_local_thumbnail(music_info["id"])
+        await music_logic.add_queue(music_info)
+        info_embed = await music_logic.create_q_music_embed(music_info)
         await message.channel.send(file=upload_file, embed=info_embed)
 async def skip(self, message, params):
     try:
-        skip_status = await on_music_ended(guild_vcs[message.guild.id], self)
+        skip_status = await music_logic.on_music_ended(guild_vcs[message.guild.id], self)
     except KeyError:
         await message.channel.send("You didn't even invite me, and you want me to skip? HOW DARE YOU?! :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
         return
