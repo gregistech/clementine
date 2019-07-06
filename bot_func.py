@@ -172,7 +172,8 @@ async def skip(self, message, params):
     except KeyError:
         await message.channel.send("You didn't even invite me, and you want me to skip? HOW DARE YOU?! :cry:", delete_after=await self.get_config_value("delt", message.guild.id))
         return
-
+    except TypeError:
+        return
     if skip_status == "skipped":
         await message.channel.send("Current song skipped! :wink:", delete_after=await self.get_config_value("delt", message.guild.id))
     elif skip_status == "no_queue":
