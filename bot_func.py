@@ -184,4 +184,10 @@ async def stop(self, message, params):
         guild_vcs.pop(message.guild.id)
     except KeyError:
         await message.channel.send("I can't stop if you don't tuuurn me on, if you know what I mean. :smirk:", delete_after=await self.get_config_value("delt", message.guild.id))
+async def purge(self, message, params):
+    limit = 100
+    if len(params) >= 1:
+        limit = int(params[0])
+    await message.channel.purge(limit=limit)
+    await message.channel.send("Oki-doki! {limit} messages were purged in {channel_name}".format(limit=limit, channel_name=message.channel.name), delete_after=await self.get_config_value("delt", message.guild.id))
 

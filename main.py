@@ -65,7 +65,8 @@ class Client(discord.Client):
                 "configure": command(change_config, discord.Permissions(permissions=32)),
                 "play": command(play),
                 "skip": command(skip),
-                "stop": command(stop)}
+                "stop": command(stop),
+                "purge": command(purge, discord.Permissions(permissions=4))}
 
     async def on_reaction_add(self, reaction, user):
         if user == self.user:
