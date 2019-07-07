@@ -13,10 +13,15 @@ def get_prefix(bot, message):
     if not message.guild:
         return config['default']['prefix']
     
+    with open('./config.json', 'r') as out:
+        config = json.loads(out.read())
+    
     prefix = config[str(message.guild.id)]['prefix']
     return commands.when_mentioned_or(*prefix)(bot, message)
 
-initial_extensions = ["cogs.mod"]
+
+initial_extensions = ["cogs.mod",
+                      "cogs.error_handler"]
 
 bot = commands.Bot(command_prefix=get_prefix, description='Multi-purpose discord bot!')
 
