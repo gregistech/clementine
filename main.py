@@ -15,8 +15,11 @@ def get_prefix(bot, message):
     
     with open('./config.json', 'r') as out:
         config = json.loads(out.read())
-    
-    prefix = config[str(message.guild.id)]['prefix']
+    try:    
+        prefix = config[str(message.guild.id)]['prefix']
+    except KeyError:
+        prefix = config['default']['prefix']
+
     return commands.when_mentioned_or(*prefix)(bot, message)
 
 
