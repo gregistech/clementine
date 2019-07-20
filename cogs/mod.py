@@ -26,6 +26,11 @@ class ModCog(commands.Cog):
     async def unban(self, ctx, mention:str, *, reason:str=None):
         member = discord.Object(id=mention.replace('<', '').replace('>', '').replace('@', ''))
         await ctx.guild.unban(member, reason=reason)
+    
+    @commands.command(name='edit')
+    @commands.has_role('Moderators')
+    async def edit(self, ctx, member:discord.Member, key:str, *, value:str):
+        await member.edit(**{key:value})
 
 def setup(bot):
     bot.add_cog(ModCog(bot))

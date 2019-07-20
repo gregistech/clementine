@@ -30,6 +30,9 @@ class ErrorHandlerCog(commands.Cog):
         
         elif isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(f"{ctx.author.mention}! {str(error).capitalize()}")
+        
+        elif isinstance(error, discord.errors.Forbidden):
+            return await ctx.send(f"{ctx.author.mention}! I don't have the permissions to do that, or you have to move my role higher up in the hierarchy!")
 
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
