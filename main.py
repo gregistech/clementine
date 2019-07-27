@@ -24,7 +24,8 @@ def get_prefix(bot, message):
 
 
 initial_extensions = ["cogs.mod",
-                      "cogs.error_handler"]
+                      "cogs.error_handler",
+                      "cogs.util"]
 
 bot = commands.Bot(command_prefix=get_prefix, description='Multi-purpose discord bot!')
 
