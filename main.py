@@ -5,9 +5,16 @@ import sys, traceback
 
 import json
 
+import os
+
 with open('./config.json', 'r') as out:
     config = json.loads(out.read())
-token = config['token']
+
+try:
+    token = os.environ['CLEMTOKEN'];
+except KeyError:
+    print("Set CLEMTOKEN environment variable to your bot token!")
+    sys.exit()
 
 def get_prefix(bot, message):
     if not message.guild:
