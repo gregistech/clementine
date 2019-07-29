@@ -1,26 +1,16 @@
 import discord
 from discord.ext import commands
 
+from classes.config_handler import config_handler
+
 import sys, traceback
-
-import json
-
 import os
 
-with open('./config.json', 'r') as out:
-    config = json.loads(out.read())
 
 def get_prefix(bot, message):
     if not message.guild:
-        return config['default']['prefix']
-    
-    with open('./config.json', 'r') as out:
-        config = json.loads(out.read())
-    try:    
-        prefix = config[str(message.guild.id)]['prefix']
-    except KeyError:
-        prefix = config['default']['prefix']
-
+        return config_handler.get_default_config
+    prefix = config_handler.get_config(message.guild.id, "prefix")
     return commands.when_mentioned_or(*prefix)(bot, message)
 
 def get_token():
@@ -29,7 +19,6 @@ def get_token():
     except KeyError:
         print("Set CLEMTOKEN environment variable to your bot token!")
         sys.exit()
-
 
 
 initial_extensions = ["cogs.mod",
@@ -45,7 +34,6 @@ if __name__ == '__main__':
 @bot.event
 async def on_ready():
     print(f'\n\nLogged in as: {bot.user.name} - {bot.user.id}\nVersion: {discord.__version__}\n')
-
     await bot.change_presence(activity=discord.Activity(name='your behaviour!', type=3))
     print(f'Successfully logged in and booted...!')
 
