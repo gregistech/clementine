@@ -23,7 +23,9 @@ def get_token():
 
 initial_extensions = ["cogs.mod",
                       "cogs.error_handler",
-                      "cogs.util"]
+                      "cogs.util",
+                      "cogs.config",
+                      ]
 
 bot = commands.Bot(command_prefix=get_prefix, description='Multi-purpose discord bot!')
 

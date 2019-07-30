@@ -3,15 +3,13 @@ import sqlite3
 default_db_path = "config.db"
 
 class Query(object):
-    def __init__(self, query, bindings = []):
+    def __init__(self, query, bindings = tuple()):
         self.query = query
         self.bindings = bindings
 
 class db_conn_handler:
     def make_connection(db_path):
-        db_conn = sqlite3.connect(db_path)
-        db_conn.row_factory = lambda cursor, row: row[0]
-        return db_conn
+        return sqlite3.connect(db_path)
     
     def close_connection(db_conn):
         db_conn.close()
