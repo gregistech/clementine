@@ -40,4 +40,11 @@ class db_handler:
         if result:
             return result
         raise db_errors.FetchNoResult("No result came back from the fetch! (Maybe guild does not exist?)")
+
+    def get_column_names(table_name):
+        db_conn = db_conn_handler.make_connection(default_db_path)
+        with db_conn:
+            cur = db_conn.cursor()
+            db_handler.execute(cur, Query(f"SELECT * FROM {table_name}"))
+        return next(zip(*cur.description))
     

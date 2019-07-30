@@ -2,7 +2,7 @@ import discord
 import typing
 from discord.ext import commands
 
-from classes.config_handler import config_handler
+from classes.config_handler import config_handler, config_errors
 
 class ConfigCog(commands.Cog):
 
@@ -12,7 +12,11 @@ class ConfigCog(commands.Cog):
     @commands.command(name='setconfig', aliases=["sc"])
     @commands.has_role('Moderators')
     async def set_config(self, ctx, key:str, *, value:str):
-        config_handler.set_config(ctx.message.guild.id, key, value)
+        try:
+            config_handler.set_config(ctx.message.guild.id, key, value)
+        except config_errors.KeyNotFound:
+            await ctx.channel.send("This key doesn't exist, baka!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
+            return
         await ctx.channel.send(f"I changed **{key}** to **{value}**!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
 
     
@@ -21,7 +25,7 @@ class ConfigCog(commands.Cog):
     async def get_config(self, ctx, key:str):
         try:
             value = config_handler.get_config(ctx.message.guild.id, key)
-        except:
+        except config_errors.KeyNotFound:
             await ctx.channel.send("This key doesn't exist, baka!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
             return
         await ctx.channel.send(f"The key **{key}** equals to **{value}**!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
