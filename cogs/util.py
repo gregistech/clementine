@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from classes.config_handler import config_handler
+
 class UtilCog(commands.Cog):
 
     def __init__(self, bot):
@@ -18,7 +20,7 @@ class UtilCog(commands.Cog):
         embed.add_field(name='Hoist', value=role.hoist)
         embed.add_field(name='Position', value=role.position)
         embed.add_field(name='Managed', value=role.managed)        
-        await ctx.channel.send(embed=embed)
+        await ctx.channel.send(embed=embed, delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
 
     @commands.command(name='serverinfo', aliases=['si'])
     async def serverinfo(self, ctx):
@@ -43,8 +45,7 @@ class UtilCog(commands.Cog):
         embed.add_field(name='Nitro boosters', value=guild.premium_subscription_count)
         embed.add_field(name='Member count', value=guild.member_count)
         embed.add_field(name='Created at (UTC)', value=guild.created_at)
-        await ctx.channel.send(embed=embed)
-
+        await ctx.channel.send(embed=embed, delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
 
 
 def setup(bot):

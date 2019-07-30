@@ -20,18 +20,21 @@ class db_errors:
         pass
 
 class db_handler:
+    def execute(cur, query):
+        cur.execute(query.query, query.bindings)
+
     def execute_query(query):
         db_conn = db_conn_handler.make_connection(default_db_path)
         with db_conn:
             cur = db_conn.cursor()
-            cur.execute(query.query, query.bindings)
+            db_handler.execute(cur, query)
         db_conn_handler.close_connection(db_conn)
 
     def fetch_query(query):
         db_conn = db_conn_handler.make_connection(default_db_path)
         with db_conn:
             cur = db_conn.cursor()
-            cur.execute(query.query, query.bindings)
+            db_handler.execute(cur, query)
             result = cur.fetchall()
         db_conn_handler.close_connection(db_conn)
         if result:

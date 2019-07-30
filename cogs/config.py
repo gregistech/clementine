@@ -13,7 +13,7 @@ class ConfigCog(commands.Cog):
     @commands.has_role('Moderators')
     async def set_config(self, ctx, key:str, *, value:str):
         config_handler.set_config(ctx.message.guild.id, key, value)
-        await ctx.channel.send("I changed **{key}** to **{value}**!".format(key=key, value=value))
+        await ctx.channel.send(f"I changed **{key}** to **{value}**!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
 
     
     @commands.command(name='getconfig', aliases=["gc"])
@@ -22,9 +22,9 @@ class ConfigCog(commands.Cog):
         try:
             value = config_handler.get_config(ctx.message.guild.id, key)
         except:
-            await ctx.channel.send("This key doesn't exist, baka!")
+            await ctx.channel.send("This key doesn't exist, baka!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
             return
-        await ctx.channel.send("The key **{key}** equals to **{value}**!".format(key=key, value=value))
+        await ctx.channel.send(f"The key **{key}** equals to **{value}**!", delete_after=config_handler.get_config(ctx.message.guild.id, "delt"))
     
 def setup(bot):
     bot.add_cog(ConfigCog(bot))
